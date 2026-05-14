@@ -1,0 +1,422 @@
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local SoundService = game:GetService("SoundService")
+local TextService = game:GetService("TextService")
+
+local plr = Players.LocalPlayer
+local playerGui = plr:WaitForChild("PlayerGui")
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "AchievementTemplate"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.Parent = playerGui
+
+local SPAWN_SOUND = "rbxassetid://140247053994120"
+local TEXT_TICK_SOUND = "rbxassetid://139692748155280"
+local DESPAWN_SOUND = "rbxassetid://137799519556394"
+
+local function PlaySound(id,volume)
+
+	local sound = Instance.new("Sound")
+	sound.SoundId = id
+	sound.Volume = volume or 1
+	sound.Parent = SoundService
+
+	sound:Play()
+
+	sound.Ended:Connect(function()
+		sound:Destroy()
+	end)
+
+end
+
+local function AnimateText(parentLabel,text,speed)
+	if not parentLabel or not parentLabel.Parent then return end
+
+	parentLabel.Text = ""
+
+	local xOffset = 0
+
+	for i = 1,#text do
+
+		local char = text:sub(i,i)
+
+		local charLabel = Instance.new("TextLabel")
+		charLabel.Parent = parentLabel.Parent
+		charLabel.BackgroundTransparency = 1
+		charLabel.Text = char
+		charLabel.Font = parentLabel.Font
+		charLabel.TextColor3 = parentLabel.TextColor3
+		charLabel.TextSize = parentLabel.TextSize
+		charLabel.TextTransparency = 1
+		charLabel.AnchorPoint = Vector2.new(0,0)
+
+		local size = TextService:GetTextSize(
+			char,
+			parentLabel.TextSize,
+			parentLabel.Font,
+			Vector2.new(9999,9999)
+		)
+
+		charLabel.Size = UDim2.new(0,size.X,0,size.Y)
+
+		charLabel.Position = UDim2.new(
+			parentLabel.Position.X.Scale,
+			parentLabel.Position.X.Offset + xOffset,
+			parentLabel.Position.Y.Scale,
+			parentLabel.Position.Y.Offset + 10
+		)
+
+		local tween = TweenService:Create(
+			charLabel,
+			TweenInfo.new(
+				0.28,
+				Enum.EasingStyle.Quint,
+				Enum.EasingDirection.Out
+			),
+			{
+				TextTransparency = 0,
+				Position = UDim2.new(
+					parentLabel.Position.X.Scale,
+					parentLabel.Position.X.Offset + xOffset,
+					parentLabel.Position.Y.Scale,
+					parentLabel.Position.Y.Offset
+				)
+			}
+		)
+
+		tween:Play()
+
+		xOffset += size.X
+		PlaySound(TEXT_TICK_SOUND,0.5)
+		task.wait(speed)
+	end
+end
+
+return function(data)
+
+	data = data or {}
+	
+	local oneUse = data.OneUse or false
+local key = "_ACHIEVEMENT_TEMPLATE_USED"
+
+local function getKeyHash(t)
+	return tostring(t.Title)..tostring(t.Desc)..tostring(t.Reason)..tostring(t.Image)
+end
+
+if oneUse then
+	local currentHash = getKeyHash(data)
+
+	if _G[key] == currentHash then
+		return
+	end
+
+	_G[key] = currentHash
+end
+
+	local title = data.Title or "Achievement"
+	local desc = data.Desc or "Description"
+	local reason = data.Reason or "Completed"
+	local image = data.Image or "rbxassetid://0"
+	local colorName = data.FrameBorderAndTextColor or "Yellow"
+	local spawnPosition = data.SpawnPosition or "Up"
+
+	local COLORS = {
+
+	Yellow = Color3.fromRGB(255,220,120),
+	Blue = Color3.fromRGB(80,170,255),
+	Green = Color3.fromRGB(80,255,120),
+	Purple = Color3.fromRGB(170,100,255),
+	Pink = Color3.fromRGB(255,120,210),
+	White = Color3.fromRGB(255,255,255),
+	Cyan = Color3.fromRGB(120,255,255),
+	Orange = Color3.fromRGB(255,170,70),
+	Red = Color3.fromRGB(255,90,90),
+	Violet = Color3.fromRGB(210,120,255),
+
+	Rainbow = "Rainbow"
+
+}
+
+	local selectedColor = COLORS[colorName] or COLORS.Yellow
+
+	local frame = Instance.new("Frame")
+	frame.Parent = gui
+	frame.AnchorPoint = Vector2.new(0.5,0)
+	frame.Size = UDim2.new(0,280,0,78)
+
+	if spawnPosition == "Side" then
+	frame.AnchorPoint = Vector2.new(1,0)
+	frame.Position = UDim2.new(1.3,0,0.03,0)
+else
+	frame.AnchorPoint = Vector2.new(0.5,0)
+	frame.Position = UDim2.new(0.5,0,-0.3,0)
+end
+
+	frame.BackgroundColor3 = Color3.fromRGB(18,18,18)
+	frame.BackgroundTransparency = 1
+	frame.BorderSizePixel = 0
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0,10)
+	corner.Parent = frame
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Parent = frame
+	stroke.Thickness = 1.5
+	stroke.Transparency = 1
+
+	local gradient = Instance.new("UIGradient")
+	gradient.Parent = frame
+	gradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0,Color3.fromRGB(40,40,40)),
+		ColorSequenceKeypoint.new(1,Color3.fromRGB(15,15,15))
+	})
+
+local iconHolder = Instance.new("Frame")
+iconHolder.Parent = frame
+iconHolder.BackgroundColor3 = Color3.fromRGB(25,25,25)
+iconHolder.BackgroundTransparency = 1
+iconHolder.Position = UDim2.new(0,10,0.5,-28)
+iconHolder.Size = UDim2.new(0,56,0,56)
+iconHolder.ClipsDescendants = true
+
+local iconHolderCorner = Instance.new("UICorner")
+iconHolderCorner.CornerRadius = UDim.new(1,0)
+iconHolderCorner.Parent = iconHolder
+
+local iconStroke = Instance.new("UIStroke")
+iconStroke.Parent = iconHolder
+iconStroke.Thickness = 2.2
+iconStroke.Transparency = 1
+
+local icon = Instance.new("ImageLabel")
+icon.Parent = iconHolder
+icon.BackgroundTransparency = 1
+icon.ImageTransparency = 1
+icon.Size = UDim2.new(1,0,1,0)
+icon.Position = UDim2.new(0,0,0,0)
+icon.Image = image
+icon.ScaleType = Enum.ScaleType.Crop
+
+local imageCorner = Instance.new("UICorner")
+imageCorner.CornerRadius = UDim.new(1,0)
+imageCorner.Parent = icon
+
+local titleHolder = Instance.new("Frame")
+local descHolder = Instance.new("Frame")
+local reasonHolder = Instance.new("Frame")
+
+titleHolder.Parent = frame
+descHolder.Parent = frame
+reasonHolder.Parent = frame
+
+titleHolder.BackgroundTransparency = 1
+descHolder.BackgroundTransparency = 1
+reasonHolder.BackgroundTransparency = 1
+
+titleHolder.Size = UDim2.new(1,-58,0,14)
+descHolder.Size = UDim2.new(1,-58,0,12)
+reasonHolder.Size = UDim2.new(1,-58,0,12)
+
+titleHolder.Position = UDim2.new(0,78,0,9)
+descHolder.Position = UDim2.new(0,78,0,31)
+reasonHolder.Position = UDim2.new(0,78,0,50)
+
+	local titleLabel = Instance.new("TextLabel")
+	titleLabel.Parent = titleHolder
+	titleLabel.BackgroundTransparency = 1
+	titleLabel.Size = UDim2.new(1,0,1,0)
+	titleLabel.Text = ""
+	titleLabel.Font = Enum.Font.GothamBold
+	titleLabel.TextColor3 = Color3.new(1,1,1)
+	titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+	local descLabel = Instance.new("TextLabel")
+	descLabel.Parent = descHolder
+	descLabel.BackgroundTransparency = 1
+	descLabel.Size = UDim2.new(1,0,1,0)
+	descLabel.Text = ""
+	descLabel.Font = Enum.Font.Gotham
+	descLabel.TextColor3 = Color3.fromRGB(220,220,220)
+	descLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+	local reasonLabel = Instance.new("TextLabel")
+	reasonLabel.Parent = reasonHolder
+	reasonLabel.BackgroundTransparency = 1
+	reasonLabel.Size = UDim2.new(1,0,1,0)
+	reasonLabel.Text = ""
+	reasonLabel.Font = Enum.Font.GothamSemibold
+	reasonLabel.TextXAlignment = Enum.TextXAlignment.Left
+	titleLabel.TextSize = 15
+    descLabel.TextSize = 11
+    reasonLabel.TextSize = 11
+	
+if colorName == "Rainbow" then
+
+	task.spawn(function()
+
+		while frame and frame.Parent do
+
+			local hue = tick() % 5 / 5
+			local rainbow = Color3.fromHSV(hue,1,1)
+
+			stroke.Color = rainbow
+iconStroke.Color = rainbow
+reasonLabel.TextColor3 = rainbow
+
+			task.wait()
+		end
+	end)
+
+else
+
+	stroke.Color = selectedColor
+iconStroke.Color = selectedColor
+reasonLabel.TextColor3 = selectedColor
+
+end
+
+	local introPosition
+
+if spawnPosition == "Side" then
+	introPosition = UDim2.new(0.965,0,0.03,0)
+else
+	introPosition = UDim2.new(0.5,0,0.06,0)
+end
+
+local tweenIn = TweenService:Create(
+	frame,
+	TweenInfo.new(
+		1,
+		Enum.EasingStyle.Exponential,
+		Enum.EasingDirection.Out
+	),
+	{
+		Position = introPosition,
+		BackgroundTransparency = 0
+	}
+)
+
+	local strokeTween = TweenService:Create(
+	stroke,
+	TweenInfo.new(1),
+	{
+		Transparency = 0
+	}
+)
+
+local iconStrokeTween = TweenService:Create(
+	iconStroke,
+	TweenInfo.new(1),
+	{
+		Transparency = 0
+	}
+)
+
+	tweenIn:Play()
+	strokeTween:Play()
+	iconStrokeTween:Play()
+	PlaySound(SPAWN_SOUND,1)
+
+	tweenIn.Completed:Wait()
+
+	task.wait(0.5)
+
+	local imageTween = TweenService:Create(
+		icon,
+		TweenInfo.new(
+			1.5,
+			Enum.EasingStyle.Sine,
+			Enum.EasingDirection.Out
+		),
+		{
+			ImageTransparency = 0
+		}
+	)
+
+	imageTween:Play()
+	imageTween.Completed:Wait()
+
+	AnimateText(titleLabel,title,0.04)
+
+	task.wait(0.15)
+
+	AnimateText(descLabel,desc,0.03)
+
+	task.wait(0.15)
+
+	AnimateText(reasonLabel,reason,0.03)
+
+	task.wait(4)
+
+	local outroPosition
+
+if spawnPosition == "Side" then
+	outroPosition = UDim2.new(1.3,0,0.03,0)
+else
+	outroPosition = UDim2.new(0.5,0,-0.3,0)
+end
+
+local outro = TweenService:Create(
+	frame,
+	TweenInfo.new(
+		1,
+		Enum.EasingStyle.Exponential,
+		Enum.EasingDirection.In
+	),
+	{
+		Position = outroPosition,
+		BackgroundTransparency = 1
+	}
+)
+
+	local fadeStroke = TweenService:Create(
+	stroke,
+	TweenInfo.new(1),
+	{
+		Transparency = 1
+	}
+)
+
+local fadeIconStroke = TweenService:Create(
+	iconStroke,
+	TweenInfo.new(1),
+	{
+		Transparency = 1
+	}
+)
+
+	local fadeImage = TweenService:Create(
+		icon,
+		TweenInfo.new(1),
+		{
+			ImageTransparency = 1
+		}
+	)
+
+PlaySound(DESPAWN_SOUND,1)
+
+	outro:Play()
+	fadeStroke:Play()
+	fadeIconStroke:Play()
+	fadeImage:Play()
+
+	for _,v in ipairs(frame:GetDescendants()) do
+		if v:IsA("TextLabel") then
+			TweenService:Create(
+				v,
+				TweenInfo.new(1),
+				{
+					TextTransparency = 1
+				}
+			):Play()
+		end
+	end
+
+	outro.Completed:Wait()
+
+	frame:Destroy()
+
+end
