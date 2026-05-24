@@ -1,0 +1,532 @@
+--// EXTREME COLOR CONVERTER XD
+--// MOST VFX SHOULD GET RECOLORED NOW :)
+
+local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
+
+local LocalPlayer = Players.LocalPlayer
+local Backpack = LocalPlayer:WaitForChild("Backpack")
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+local processed = {}
+local protectedConnections = {}
+
+------------------------------------------------
+-- COLOR GUI
+------------------------------------------------
+
+local COLOR_HUES = {
+	["Red"] = 0,
+	["Orange"] = 0.08,
+	["Yellow"] = 0.16,
+	["Lime"] = 0.25,
+	["Green"] = 0.33,
+	["Cyan"] = 0.5,
+	["Blue"] = 0.66,
+	["Dark Blue"] = 0.72,
+	["Purple"] = 0.78,
+	["Violet"] = 0.83,
+	["Pink"] = 0.92,
+
+	["White"] = "white",
+	["Black"] = "black",
+	["Gray"] = "gray",
+}
+
+local CURRENT_COLOR = nil
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "ExtremeColorConverter"
+gui.ResetOnSpawn = false
+gui.Parent = PlayerGui
+
+local box = Instance.new("TextBox")
+box.Size = UDim2.new(0, 140, 0, 28)
+box.Position = UDim2.new(0, 10, 0.5, -14)
+box.BackgroundColor3 = Color3.fromRGB(20,20,20)
+box.TextColor3 = Color3.new(1,1,1)
+box.BorderSizePixel = 0
+box.Text = ""
+box.PlaceholderText = "Purple / Red..."
+box.Font = Enum.Font.SourceSansBold
+box.TextSize = 18
+box.ClearTextOnFocus = false
+box.Parent = gui
+
+------------------------------------------------
+-- COLOR FUNCTIONS
+------------------------------------------------
+
+local function convertColor(color)
+
+	if not CURRENT_COLOR then
+		return color
+	end
+
+	local h, s, v = Color3.toHSV(color)
+
+	if CURRENT_COLOR == "white" then
+		return Color3.fromHSV(0,0,v)
+
+	elseif CURRENT_COLOR == "black" then
+		return Color3.fromHSV(0,0,0)
+
+	elseif CURRENT_COLOR == "gray" then
+		return Color3.fromHSV(0,0,v)
+	end
+
+	return Color3.fromHSV(CURRENT_COLOR, s, v)
+end
+
+local function convertSequence(sequence)
+
+	local newKeys = {}
+
+	for _, key in ipairs(sequence.Keypoints) do
+
+		table.insert(newKeys,
+			ColorSequenceKeypoint.new(
+				key.Time,
+				convertColor(key.Value)
+			)
+		)
+	end
+
+	return ColorSequence.new(newKeys)
+end
+
+------------------------------------------------
+-- HELPERS
+------------------------------------------------
+
+local function protect(obj, property, callback)
+
+	local id = tostring(obj) .. property
+
+	if protectedConnections[id] then
+		return
+	end
+
+	protectedConnections[id] =
+		obj:GetPropertyChangedSignal(property):Connect(function()
+
+			pcall(callback)
+		end)
+end
+
+local function isInsideLighting(obj)
+	return obj:IsDescendantOf(Lighting)
+end
+
+local function isEquippedToolEffect(obj)
+
+	local tool = obj:FindFirstAncestorWhichIsA("Tool")
+
+	return tool and tool.Parent == LocalPlayer.Character
+end
+
+------------------------------------------------
+-- APPLY FUNCTIONS
+------------------------------------------------
+
+local function recolorMesh(mesh)
+
+	local c = mesh.VertexColor
+
+	local color = Color3.new(c.X, c.Y, c.Z)
+
+	local newColor = convertColor(color)
+
+	mesh.VertexColor = Vector3.new(
+		newColor.R,
+		newColor.G,
+		newColor.B
+	)
+end
+
+local function applyTo(obj)
+
+	if processed[obj] then
+		return
+	end
+
+	processed[obj] = true
+
+	if not CURRENT_COLOR then
+		return
+	end
+
+	pcall(function()
+
+		------------------------------------------------
+		-- IGNORE EQUIPPED TOOL EFFECTS
+		------------------------------------------------
+
+		if isEquippedToolEffect(obj) and (
+			obj:IsA("ParticleEmitter")
+			or obj:IsA("Trail")
+			or obj:IsA("Beam")
+			or obj:IsA("PointLight")
+			or obj:IsA("SpotLight")
+			or obj:IsA("SurfaceLight")
+		) then
+			return
+		end
+
+		------------------------------------------------
+		-- BASEPARTS
+		------------------------------------------------
+
+		if obj:IsA("BasePart") then
+
+			obj.Color = convertColor(obj.Color)
+
+			protect(obj, "Color", function()
+				obj.Color = convertColor(obj.Color)
+			end)
+
+		------------------------------------------------
+		-- PARTICLES
+		------------------------------------------------
+
+		elseif obj:IsA("ParticleEmitter") then
+
+			obj.Color = convertSequence(obj.Color)
+
+			protect(obj, "Color", function()
+				obj.Color = convertSequence(obj.Color)
+			end)
+
+		------------------------------------------------
+		-- TRAILS
+		------------------------------------------------
+
+		elseif obj:IsA("Trail") then
+
+			obj.Color = convertSequence(obj.Color)
+
+			protect(obj, "Color", function()
+				obj.Color = convertSequence(obj.Color)
+			end)
+
+		------------------------------------------------
+		-- BEAMS
+		------------------------------------------------
+
+		elseif obj:IsA("Beam") then
+
+			obj.Color = convertSequence(obj.Color)
+
+			protect(obj, "Color", function()
+				obj.Color = convertSequence(obj.Color)
+			end)
+
+		------------------------------------------------
+		-- UI GRADIENTS
+		------------------------------------------------
+
+		elseif obj:IsA("UIGradient") then
+
+			obj.Color = convertSequence(obj.Color)
+
+		------------------------------------------------
+		-- LIGHTS
+		------------------------------------------------
+
+		elseif (obj:IsA("PointLight")
+			or obj:IsA("SpotLight")
+			or obj:IsA("SurfaceLight"))
+			and not isInsideLighting(obj) then
+
+			obj.Color = convertColor(obj.Color)
+
+			protect(obj, "Color", function()
+				obj.Color = convertColor(obj.Color)
+			end)
+
+		------------------------------------------------
+		-- TEXTURES
+		------------------------------------------------
+
+		elseif obj:IsA("Texture")
+			or obj:IsA("Decal") then
+
+			obj.Color3 = convertColor(obj.Color3)
+
+			protect(obj, "Color3", function()
+				obj.Color3 = convertColor(obj.Color3)
+			end)
+
+		------------------------------------------------
+		-- IMAGES
+		------------------------------------------------
+
+		elseif obj:IsA("ImageLabel")
+			or obj:IsA("ImageButton") then
+
+			obj.ImageColor3 =
+				convertColor(obj.ImageColor3)
+
+		------------------------------------------------
+		-- HIGHLIGHTS
+		------------------------------------------------
+
+		elseif obj:IsA("Highlight") then
+
+			obj.FillColor =
+				convertColor(obj.FillColor)
+
+			obj.OutlineColor =
+				convertColor(obj.OutlineColor)
+
+		------------------------------------------------
+		-- SPECIAL MESHES
+		------------------------------------------------
+
+		elseif obj:IsA("SpecialMesh")
+			or obj:IsA("FileMesh") then
+
+			recolorMesh(obj)
+
+		------------------------------------------------
+		-- FIRE
+		------------------------------------------------
+
+		elseif obj:IsA("Fire") then
+
+			obj.Color =
+				convertColor(obj.Color)
+
+			obj.SecondaryColor =
+				convertColor(obj.SecondaryColor)
+
+		------------------------------------------------
+		-- SMOKE
+		------------------------------------------------
+
+		elseif obj:IsA("Smoke") then
+
+			obj.Color =
+				convertColor(obj.Color)
+
+		------------------------------------------------
+		-- SPARKLES
+		------------------------------------------------
+
+		elseif obj:IsA("Sparkles") then
+
+			obj.SparkleColor =
+				convertColor(obj.SparkleColor)
+
+		------------------------------------------------
+		-- ATMOSPHERE
+		------------------------------------------------
+
+		elseif obj:IsA("Atmosphere") then
+
+			obj.Color =
+				convertColor(obj.Color)
+
+			obj.Decay =
+				convertColor(obj.Decay)
+
+		------------------------------------------------
+		-- COLOR CORRECTION
+		------------------------------------------------
+
+		elseif obj:IsA("ColorCorrectionEffect") then
+
+			obj.TintColor =
+				convertColor(obj.TintColor)
+
+		------------------------------------------------
+		-- SURFACE APPEARANCE
+		------------------------------------------------
+
+		elseif obj:IsA("SurfaceAppearance") then
+
+			obj.Color =
+				convertColor(obj.Color)
+
+		------------------------------------------------
+		-- SELECTION BOX
+		------------------------------------------------
+
+		elseif obj:IsA("SelectionBox") then
+
+			obj.Color3 =
+				convertColor(obj.Color3)
+
+		------------------------------------------------
+		-- SELECTION SPHERE
+		------------------------------------------------
+
+		elseif obj:IsA("SelectionSphere") then
+
+			obj.SurfaceColor3 =
+				convertColor(obj.SurfaceColor3)
+
+		------------------------------------------------
+		-- HANDLE ADORNMENTS
+		------------------------------------------------
+
+		elseif obj:IsA("HandleAdornment") then
+
+			obj.Color3 =
+				convertColor(obj.Color3)
+
+		------------------------------------------------
+		-- VIEWPORTFRAME
+		------------------------------------------------
+
+		elseif obj:IsA("ViewportFrame") then
+
+			obj.ImageColor3 =
+				convertColor(obj.ImageColor3)
+
+			for _, v in ipairs(obj:GetDescendants()) do
+				task.spawn(function()
+					applyTo(v)
+				end)
+			end
+
+		------------------------------------------------
+		-- BILLBOARD/SURFACE GUI
+		------------------------------------------------
+
+		elseif obj:IsA("BillboardGui")
+			or obj:IsA("SurfaceGui") then
+
+			for _, ui in ipairs(obj:GetDescendants()) do
+
+				if ui:IsA("ImageLabel")
+					or ui:IsA("ImageButton") then
+
+					ui.ImageColor3 =
+						convertColor(ui.ImageColor3)
+
+				elseif ui:IsA("Frame") then
+
+					ui.BackgroundColor3 =
+						convertColor(ui.BackgroundColor3)
+				end
+			end
+
+		------------------------------------------------
+		-- MODELS
+		------------------------------------------------
+
+		elseif obj:IsA("Model") then
+
+			for _, v in ipairs(obj:GetDescendants()) do
+				task.spawn(function()
+					applyTo(v)
+				end)
+			end
+		end
+	end)
+end
+
+------------------------------------------------
+-- TOOL SUPPORT
+------------------------------------------------
+
+local function applyTool(tool)
+
+	if not tool:IsA("Tool") then
+		return
+	end
+
+	pcall(function()
+
+		tool.TextureId = "rbxassetid://0"
+
+		for _, v in ipairs(tool:GetDescendants()) do
+			task.spawn(function()
+				applyTo(v)
+			end)
+		end
+	end)
+end
+
+------------------------------------------------
+-- COLOR COMMAND
+------------------------------------------------
+
+box.FocusLost:Connect(function(enterPressed)
+
+	if not enterPressed then
+		return
+	end
+
+	local txt = box.Text
+
+	for name, hue in pairs(COLOR_HUES) do
+
+		if string.lower(txt) == string.lower(name) then
+
+			CURRENT_COLOR = hue
+
+			box.Text = name
+
+			print("selected color:", name)
+
+			return
+		end
+	end
+
+	box.Text = "Invalid"
+
+	task.wait(1)
+
+	box.Text = ""
+end)
+
+------------------------------------------------
+-- EXISTING TOOLS
+------------------------------------------------
+
+for _, tool in ipairs(Backpack:GetChildren()) do
+	applyTool(tool)
+end
+
+if LocalPlayer.Character then
+
+	for _, tool in ipairs(LocalPlayer.Character:GetChildren()) do
+		applyTool(tool)
+	end
+end
+
+------------------------------------------------
+-- NEW OBJECTS
+------------------------------------------------
+
+game.DescendantAdded:Connect(function(obj)
+
+	task.wait()
+
+	applyTo(obj)
+end)
+
+------------------------------------------------
+-- NEW TOOLS
+------------------------------------------------
+
+Backpack.ChildAdded:Connect(function(tool)
+
+	task.wait()
+
+	applyTool(tool)
+end)
+
+LocalPlayer.CharacterAdded:Connect(function(char)
+
+	char.ChildAdded:Connect(function(tool)
+
+		task.wait()
+
+		applyTool(tool)
+	end)
+end)
+
+print("EXTREME COLOR CONVERTER LOADED XD")
