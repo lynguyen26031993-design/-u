@@ -1,0 +1,106 @@
+
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local function SetupDoor(door)
+	if not (door:IsA("Model") and door.Name == "Door") then return end
+
+	local hasHitbox = false
+	for _, v in ipairs(door:GetDescendants()) do
+		if v.Name == "KeyHitbox" then
+			hasHitbox = true
+			break
+		end
+	end
+	if not hasHitbox and door.Parent then
+		for _, v in ipairs(door.Parent:GetDescendants()) do
+			if v.Name == "KeyHitbox" then
+				hasHitbox = true
+				break
+			end
+		end
+	end
+	if hasHitbox then
+		return
+	end
+
+	local moved = {}
+	local knob
+
+	for _, obj in ipairs(door:GetDescendants()) do
+		if obj:IsA("BasePart") and obj.Name == "Knob" then
+			knob = obj
+		end
+
+		if obj.Name:sub(1, 5) == "Func_"
+		or obj.Name == "ClientOpen"
+		or obj.Name == "Hidden"
+		or obj.Name == "Collision" then
+			table.insert(moved, {
+				Object = obj,
+				Parent = obj.Parent
+			})
+			obj.Parent = nil
+		end
+	end
+
+	if #moved == 0 or not knob then
+		return
+	end
+
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Style = Enum.ProximityPromptStyle.Custom
+	prompt.ActionText = "Open Door"
+	prompt.ObjectText = "Door"
+	prompt.MaxActivationDistance = 10
+	prompt.RequiresLineOfSight = false
+	prompt.Parent = knob
+
+	prompt.Triggered:Connect(function()
+		prompt:Destroy()
+
+		local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+		local hum = char:WaitForChild("Humanoid")
+		local hrp = char:WaitForChild("HumanoidRootPart")
+
+		local cf, size = door:GetBoundingBox()
+		local targetPos = cf.Position - cf.LookVector * (size.Z / 2 + 2)
+		local targetCF = CFrame.lookAt(targetPos, cf.Position)
+
+		hum.AutoRotate = false
+		hrp.Anchored = true
+
+		local tween = TweenService:Create(
+			hrp,
+			TweenInfo.new(0.7, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out),
+			{ CFrame = targetCF }
+		)
+
+		tween:Play()
+		tween.Completed:Wait()
+
+		hrp.Anchored = false
+		hum.AutoRotate = true
+
+		for _, info in ipairs(moved) do
+			if info.Object and info.Parent then
+				info.Object.Parent = info.Parent
+			end
+		end
+	end)
+end
+
+local currentRooms = workspace:WaitForChild("CurrentRooms")
+
+for _, v in ipairs(currentRooms:GetDescendants()) do
+	if v:IsA("Model") and v.Name == "Door" then
+		SetupDoor(v)
+	end
+end
+
+currentRooms.DescendantAdded:Connect(function(v)
+	if v:IsA("Model") and v.Name == "Door" then
+		SetupDoor(v)
+	end
+end)
