@@ -1,0 +1,88 @@
+<!-- Saved by UniversalSynSaveInstance (Join to Copy Games) https://discord.gg/wx4ThpAsmw --><roblox version="4"><Meta name="ExplicitAutoJoints">true</Meta><Item class="Frame" referent="0"><Properties><Color3 name="BackgroundColor3"><R>1</R><G>1</G><B>1</B></Color3><float name="BackgroundTransparency">1</float><Color3 name="BorderColor3"><R>0.10588236153125763</R><G>0.16470588743686676</G><B>0.20784315466880798</B></Color3><int name="BorderSizePixel">0</int><UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2><bool name="Visible">false</bool><int name="ZIndex">20</int><BinaryString name="AttributesSerialize"></BinaryString><bool name="DefinesCapabilities">false</bool><string name="Name"><![CDATA[Jumpscare_Rebound]]></string><SharedString name="Tags">MTAwMDAwMDAwMDAwMDAwMA==</SharedString></Properties><Item class="ImageLabel" referent="1"><Properties><Content name="Image"><url><![CDATA[rbxassetid://236543215]]></url></Content><Color3 name="ImageColor3"><R>0</R><G>1</G><B>1</B></Color3><float name="ImageTransparency">1</float><token name="ResampleMode">1</token><token name="ScaleType">2</token><UDim2 name="TileSize"><XS>0.5</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2><Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2><Color3 name="BackgroundColor3"><R>0</R><G>0.24705882370471954</G><B>0.545098066329956</B></Color3><Color3 name="BorderColor3"><R>0.10588236153125763</R><G>0.16470588743686676</G><B>0.20784315466880798</B></Color3><UDim2 name="Position"><XS>0.5</XS><XO>0</XO><YS>0.5</YS><YO>0</YO></UDim2><UDim2 name="Size"><XS>1</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2><BinaryString name="AttributesSerialize"></BinaryString><bool name="DefinesCapabilities">false</bool><string name="Name"><![CDATA[Static]]></string><SharedString name="Tags">MTAwMDAwMDAwMDAwMDAwMA==</SharedString></Properties></Item><Item class="ImageLabel" referent="2"><Properties><Content name="Image"><url><![CDATA[rbxassetid://13272951808]]></url></Content><UDim2 name="TileSize"><XS>0.5</XS><XO>0</XO><YS>1</YS><YO>0</YO></UDim2><Vector2 name="AnchorPoint"><X>0.5</X><Y>0.5</Y></Vector2><Color3 name="BackgroundColor3"><R>0</R><G>0.24705882370471954</G><B>0.545098066329956</B></Color3><float name="BackgroundTransparency">1</float><Color3 name="BorderColor3"><R>0.10588236153125763</R><G>0.16470588743686676</G><B>0.20784315466880798</B></Color3><UDim2 name="Position"><XS>0.4881889820098877</XS><XO>0</XO><YS>0.5666189193725586</YS><YO>0</YO></UDim2><UDim2 name="Size"><XS>0.23307086527347565</XS><XO>0</XO><YS>0.3538682162761688</YS><YO>0</YO></UDim2><int name="ZIndex">2</int><BinaryString name="AttributesSerialize"></BinaryString><bool name="DefinesCapabilities">false</bool><string name="Name"><![CDATA[reb]]></string><SharedString name="Tags">MTAwMDAwMDAwMDAwMDAwMA==</SharedString></Properties><Item class="LocalScript" referent="3"><Properties><ProtectedString name="Source"><![CDATA[-- Saved by UniversalSynSaveInstance (Join to Copy Games) https://discord.gg/wx4ThpAsmw
+
+script.Parent.Visible = true
+local v_u_1 = game:GetService("TweenService")
+local v2 = {
+	Color3.fromRGB(160, 206, 255),
+	Color3.fromRGB(0, 123, 255),
+	Color3.fromRGB(0, 208, 255),
+	Color3.fromRGB(120, 174, 255),
+	Color3.fromRGB(255, 255, 255),
+	Color3.fromRGB(37, 84, 255),
+	Color3.fromRGB(133, 255, 237)
+}
+local v_u_3 = script.Parent
+local v_u_4 = v_u_3.Js
+math.random(-90, 90)
+while true do
+	task.wait(0.06666666666666667)
+	local v5 = v_u_3.Rotation
+	local v6
+	if math.random(1, 2) == 1 then
+		v6 = -v5
+	elseif math.random(1, 2) == 1 then
+		v6 = v5 + math.random(-360, 360)
+	else
+		v6 = v5 + v5
+	end
+	local v7 = v6 + math.random(-360, 360)
+	local v8 = v7 > 180 and 180 or v7
+	local v9 = v8 < -180 and -180 or v8
+	v_u_3.ImageColor3 = v2[math.random(1, #v2)]
+	v_u_1:Create(v_u_3, TweenInfo.new(0.18333333333333335), {
+		["Size"] = UDim2.new(0, math.random(150, 450), 0, math.random(75, 150))
+	}):Play()
+	task.delay(0.03333333333333333, function()
+		-- upvalues: (copy) v_u_1, (copy) v_u_3
+		v_u_1:Create(v_u_3, TweenInfo.new(0.05333333333333333), {
+			["Size"] = UDim2.new(0, math.random(225, 250), 0, math.random(150, 450))
+		}):Play()
+	end)
+	task.delay(math.random(300, 600) / 600, function()
+		-- upvalues: (copy) v_u_4
+		v_u_4:Play()
+		v_u_4.Pitch = math.random(50, 125) / 100
+		v_u_4.TimePosition = 0.25 + math.random() / 10
+	end)
+	v_u_1:Create(v_u_3, TweenInfo.new(0.05333333333333333, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		["Position"] = UDim2.new(math.random(150, 800) / 1000, 0, math.random(150, 800) / 1000, 0),
+		["Rotation"] = -v9
+	}):Play()
+end]]></ProtectedString><bool name="Disabled">true</bool><BinaryString name="AttributesSerialize"></BinaryString><bool name="DefinesCapabilities">false</bool><string name="Name"><![CDATA[Shake]]></string><SharedString name="Tags">MTAwMDAwMDAwMDAwMDAwMA==</SharedString></Properties></Item><Item class="Sound" referent="4"><Properties><Content name="SoundId"><url><![CDATA[rbxassetid://92668515191945]]></url></Content><float name="Volume">5</float><BinaryString name="AttributesSerialize"></BinaryString><bool name="DefinesCapabilities">false</bool><string name="Name"><![CDATA[Js]]></string><int64 name="SourceAssetId">92668515191945</int64><SharedString name="Tags">MTAwMDAwMDAwMDAwMDAwMA==</SharedString></Properties></Item></Item></Item><Item class="Script" referent="5"><Properties><string name="Name"><![CDATA[README]]></string><ProtectedString name="Source"><![CDATA[--[[
+		Thank you for using UniversalSynSaveInstance (Join to Copy Games) https://discord.gg/wx4ThpAsmw.
+
+		If you didn't save in Binary (rbxl) - it's recommended to save the game right away to take advantage of the binary format & to preserve values of certain properties if you used IgnoreDefaultProperties setting (as they might change in the future).
+		You can do that by going to FILE -> Save to File As -> Make sure File Name ends with .rbxl -> Save
+
+		ServerStorage, ServerScriptService and Server Scripts are IMPOSSIBLE to save because of FilteringEnabled.
+
+		If your player cannot spawn into the game, please move the scripts in StarterPlayer somewhere else or delete them. Then run `game:GetService("Players").CharacterAutoLoads = true`.
+		And use "Play Here" to start game instead of "Play" to spawn your Character where your Camera currently is.
+
+		If the chat system does not work, please use the explorer and delete everything inside the TextChatService/Chat service(s). 
+		Or run `game:GetService("Chat"):ClearAllChildren() game:GetService("TextChatService"):ClearAllChildren()`
+				
+		If Union and MeshPart collisions don't work, run the script below in the Studio Command Bar:
+				
+				
+		local C = game:GetService("CoreGui")
+		local D = Enum.CollisionFidelity.Default
+				
+		for _, v in game:GetDescendants() do
+			if v:IsA("TriangleMeshPart") and not v:IsDescendantOf(C) then
+				v.CollisionFidelity = D
+			end
+		end
+		print("Done")
+				
+		If you can't move the Camera, run this script in the Studio Command Bar:
+			
+		workspace.CurrentCamera.CameraType = Enum.CameraType.Fixed
+		
+		Or Destroy the Camera.
+
+		This file was generated with the following settings:
+		{"SavePlayerCharacters":true,"SaveBytecode":false,"Callback":false,"ShowStatus":true,"IgnoreDefaultPlayerScripts":true,"NilInstancesFixes":{"BaseWrap":null,"Animator":null,"Attachment":null,"PackageLink":null,"AdPortal":null},"IgnoreList":["CoreGui","CorePackages"],"__DEBUG_MODE":false,"KillAllScripts":true,"DecompileJobless":false,"Decompile":true,"IgnoreNotArchivable":true,"Object":null,"DecompileIgnore":["TextChatService",null,null,null,null],"IgnoreSpecialProperties":true,"BoostFPS":true,"IsModel":false,"NilInstances":false,"ExtraInstances":[],"ReadMe":true,"OptionsAliasesInverse":{"noscripts":"Decompile","RemovePlayers":"IsolatePlayers","RemovePlayerCharacters":"SavePlayerCharacters"},"OptionsAliases":{"DecompileScripts":"Decompile","timeout":"DecompileTimeout","StatusText":"ShowStatus","SavePlayers":"IsolatePlayers","FileName":"FilePath","SaveCharacters":"SavePlayerCharacters","SaveNilInstances":"NilInstances","IgnoreArchivable":"IgnoreNotArchivable","SaveNonCreatable":"SaveNotCreatable","SaveLocalPlayer":"IsolateLocalPlayer","InstancesBlacklist":"IgnoreList","IsolatePlayerGui":"IsolateLocalPlayer","SavePlayerGui":"IsolateLocalPlayer","IgnoreDefaultProps":"IgnoreDefaultProperties"},"IgnoreSharedStrings":false,"TreatUnionsAsParts":false,"scriptcache":true,"SharedStringOverwrite":false,"AlternativeWritefile":true,"mode":"optimized","SaveCacheInterval":56320,"NotCreatableFixes":["","AdvancedDragger","AnimationTrack","Dragger","Player","PlayerGui","PlayerMouse","PlayerMouse","PlayerScripts","ScreenshotHud","StudioData","TextChatMessage","TextSource","TouchTransmitter","Translator"],"IsolatePlayers":false,"BytecodeTimeout":3,"FilePath":"Place_131351567799504_Frame_Jumpscare_Rebound_1786210706.txt","IgnoreDefaultProperties":true,"Anonymous":false,"IsolateStarterPlayer":false,"IsolateLocalPlayerCharacter":false,"IgnorePropertiesOfNotScriptsOnScriptsMode":false,"AvoidFileOverwrite":true,"SaveNotCreatable":false,"IsolateLocalPlayer":false,"ShutdownWhenDone":false,"AntiIdle":true,"SafeMode":true,"IgnoreProperties":[],"DecompileTimeout":10}
+
+		Elapsed time: 0.09669661498628557 Date (UTC): 8 August 2026 17:38:32 PlaceId: 131351567799504 PlaceVersion: 1930 Client Version: 2.731.944 Platform: Android Executor: Delta 1.1.731.944 arm64
+]]]]></ProtectedString></Properties></Item><SharedStrings><SharedString md5="MTAwMDAwMDAwMDAwMDAwMA=="></SharedString></SharedStrings></roblox><!-- Saved by UniversalSynSaveInstance (Join to Copy Games) https://discord.gg/wx4ThpAsmw -->
